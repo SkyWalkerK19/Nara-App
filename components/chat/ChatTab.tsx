@@ -8,12 +8,11 @@ interface ChatTabProps {
 }
 
 export default function ChatTab({ chatId }: ChatTabProps) {
-  
+  const { user, loading } = useAuth();
   const [messages, setMessages] = useState<Message[]>([]);
   const [content, setContent] = useState('');
   const [fetching, setFetching] = useState(true); // <-- for messages
   const [error, setError] = useState('');
-  const { user, loading } = useAuth();
 
   // Guard for loading/auth at the top
   if (loading) return <div>Loading user...</div>;
@@ -27,12 +26,13 @@ export default function ChatTab({ chatId }: ChatTabProps) {
       .select('*')
       .eq('chat_id', chatId)
       .order('created_at', { ascending: true })
-      .then(({ data, error }) => {
-        if (error) setError(error.message);
-        else setMessages(data || []);
-        setFetching(false);
-      });
-
+      .then((response) => {
+  const data = response.data as Message[] | null;
+  const error = response.error;
+  if (error) setError(error.message);
+  else setMessages(data || []);
+  setFetching(false);
+});
     // Real-time subscription
     const channel = supabase
       .channel('realtime-messages')
@@ -51,23 +51,22 @@ export default function ChatTab({ chatId }: ChatTabProps) {
   }, [chatId]);
 
   async function handleSendMessage(e: React.FormEvent) {
-    e.preventDefault();
-    setError('');
-    if (!content.trim()) return;
-    if (!user) {
-      setError('User not found. Please sign in again.');
-      return;
-    }
-    const { error: insertError } = await supabase
-      .from('messages')
-      .insert({
-        chat_id: chatId,
-        user_id: user.id,
-        content,
-      });
-    if (insertError) setError(insertError.message);
-    setContent('');
-  }
+  e.preventDefault();
+  setError('');
+  if (!content.trim()) return;
+  if (!user) return; 
+
+  const { error: insertError } = await supabase
+    .from('messages')
+    .insert({
+      chat_id: chatId,
+      user_id: user.id,  // Now TypeScript knows user is not null
+      content,
+    });
+  if (insertError) setError(insertError.message);
+  setContent('');
+}
+
 
   return (
     <div style={{ padding: 24, maxWidth: 600 }}>

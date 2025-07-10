@@ -1,18 +1,18 @@
-// This wrapper is designed to share data across the entire app without manually passing props at every level
+// context/AuthContext.tsx
 
-import { User } from '@supabase/supabase-js';
+import { supabase } from '@/lib/supabase';
+import type { User as AppUser } from '@/types';
 import React, {
-  createContext,
-  FC,
-  ReactNode,
-  useContext,
-  useEffect,
-  useState
+    createContext,
+    FC,
+    ReactNode,
+    useContext,
+    useEffect,
+    useState
 } from 'react';
-import { supabase } from '../lib/supabase';
 
 interface AuthContextType {
-  user: User | null;
+  user: AppUser | null;
   loading: boolean;
   signUp: (email: string, password: string) => Promise<any>;
   signIn: (email: string, password: string) => Promise<any>;
@@ -26,22 +26,38 @@ interface AuthProviderProps {
 }
 
 export const AuthProvider: FC<AuthProviderProps> = ({ children }) => {
-  const [user, setUser] = useState<User | null>(null);
+  const [user, setUser] = useState<AppUser | null>(null);
   const [loading, setLoading] = useState(true);
+
+  async function fetchDbUser(authUser: any) {
+    const { data: profile } = await supabase
+      .from('users')
+      .select('*')
+      .eq('id', authUser.id)
+      .single();
+    setUser(profile ?? null);
+  }
 
   useEffect(() => {
     const getSession = async () => {
       const { data } = await supabase.auth.getSession();
-      setUser(data?.session?.user ?? null);
+      const authUser = data?.session?.user ?? null;
+      if (authUser) {
+        await fetchDbUser(authUser);
+      } else {
+        setUser(null);
+      }
       setLoading(false);
     };
-
     getSession();
-
     const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
-      setUser(session?.user ?? null);
+      const authUser = session?.user ?? null;
+      if (authUser) {
+        fetchDbUser(authUser);
+      } else {
+        setUser(null);
+      }
     });
-
     return () => {
       listener.subscription.unsubscribe();
     };
@@ -49,10 +65,8 @@ export const AuthProvider: FC<AuthProviderProps> = ({ children }) => {
 
   const signUp = (email: string, password: string) =>
     supabase.auth.signUp({ email, password });
-
   const signIn = (email: string, password: string) =>
     supabase.auth.signInWithPassword({ email, password });
-
   const signOut = () => supabase.auth.signOut();
 
   return (

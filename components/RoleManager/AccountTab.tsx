@@ -4,7 +4,7 @@ import { roleMap } from '@/roles';
 import React, { useState } from 'react';
 
 export default function AccountTab() {
-  const { user } = useAuth();
+  const { user, loading } = useAuth();
 
   // Form state
   const [name, setName] = useState(user?.name || '');
@@ -12,8 +12,10 @@ export default function AccountTab() {
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
+ 
 
   if (!user) return <div>Loading...</div>;
+  if (loading) return <div>Loading user...</div>;
 
   const userRole = user.role ? roleMap[user.role] : null;
 
