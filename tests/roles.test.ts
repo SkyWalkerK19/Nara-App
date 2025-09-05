@@ -1,5 +1,7 @@
 import { hasPermission, roleMap, roles } from '../roles/roles';
 
+
+
 describe('Role system', () => {
   it('should have all expected roles', () => {
     const roleNames = roles.map(r => r.name).sort();
@@ -25,3 +27,6 @@ describe('Role system', () => {
     expect(hasPermission('admin', 'notARealPermission')).toBe(false);
   });
 });
+
+
+

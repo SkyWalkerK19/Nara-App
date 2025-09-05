@@ -5,5 +5,6 @@ export interface User {
   age?: number;
   role: 'admin' | 'bar' | 'hookah' | 'server';
   team?: string;
+  chatId?: string;
   created_at: string;
 }

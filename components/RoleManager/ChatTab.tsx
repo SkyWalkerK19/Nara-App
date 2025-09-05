@@ -1,11 +1,8 @@
-import { useAuth } from '@/context/AuthContext';
-import { supabase } from '@/lib/supabase';
-import type { Message } from '@/types';
 import React, { useEffect, useState } from 'react';
-
-interface ChatTabProps {
-  chatId: string;
-}
+import { useAuth } from '../../context/AuthContext';
+import { supabase } from '../../lib/supabase';
+import type { Message } from '../../types';
+import type { ChatTabProps } from '../types/ChatTabProps';
 
 export default function ChatTab({ chatId }: ChatTabProps) {
   

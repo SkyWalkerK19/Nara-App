@@ -2,40 +2,46 @@
 
 import { supabase } from '@/lib/supabase';
 import type { User as AppUser } from '@/types';
-import React, {
+import type { AuthContextType } from '@/types/AuthContextType';
+import type { AuthProviderProps } from '@/types/AuthProviderProps';
+import {
     createContext,
     FC,
-    ReactNode,
     useContext,
     useEffect,
     useState
 } from 'react';
 
-interface AuthContextType {
-  user: AppUser | null;
-  loading: boolean;
-  signUp: (email: string, password: string) => Promise<any>;
-  signIn: (email: string, password: string) => Promise<any>;
-  signOut: () => Promise<any>;
-}
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-interface AuthProviderProps {
-  children: ReactNode;
-}
+
 
 export const AuthProvider: FC<AuthProviderProps> = ({ children }) => {
   const [user, setUser] = useState<AppUser | null>(null);
   const [loading, setLoading] = useState(true);
 
   async function fetchDbUser(authUser: any) {
-    const { data: profile } = await supabase
-      .from('users')
-      .select('*')
-      .eq('id', authUser.id)
-      .single();
-    setUser(profile ?? null);
+    const { data: chatData, error } = await supabase
+  .from('chats')
+  .insert({ created_by: authUser.id, is_group: false }) //may edit later
+  .select()
+  .single();
+  if (error) {
+    console.error('Error inserting chat:', error);
+    return;
+  }
+if (chatData && !error) {
+  // Now update user's chat_id to this new chat's ID:
+  const { data: profile } = await supabase
+    .from('users')
+    .update({ chat_id: chatData.id }) // <--- use the actual chat's ID!
+    .eq('id', user ? user.id : null)
+    .select('*')
+    .single();
+  setUser(profile ?? null);
+}
+
   }
 
   useEffect(() => {
