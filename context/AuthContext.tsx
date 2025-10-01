@@ -35,8 +35,8 @@ if (chatData && !error) {
   // Now update user's chat_id to this new chat's ID:
   const { data: profile } = await supabase
     .from('users')
-    .update({ chat_id: chatData.id }) // <--- use the actual chat's ID!
-    .eq('id', user ? user.id : null)
+    .update({ chatId: chat.id })
+    .eq('id', authUserId)
     .select('*')
     .single();
   setUser(profile ?? null);
