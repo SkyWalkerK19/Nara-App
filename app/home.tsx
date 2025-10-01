@@ -1,6 +1,6 @@
 import RequireAuth from "@/components/RequireAuth";
 import { useAuth } from "@/context/AuthContext";
-import { Link } from 'expo-router';
+import router from 'expo-router'; // Import router as default
 import { Button, Pressable, Text, View } from 'react-native';
 
 export default function Home() {
@@ -12,25 +12,24 @@ export default function Home() {
         <Text style={{ fontSize: 24, fontWeight: 'bold' }}>Home</Text>
         
         <View style={{ marginTop: 12 }}>
-          <Link href="/analytics/index" asChild>
-            <Pressable
-              style={{
-                backgroundColor: "#1f2937",
-                paddingVertical: 14,
-                paddingHorizontal: 16,
-                borderRadius: 12,
-                borderWidth: 1,
-                borderColor: "#334155",
-              }}
-            >
-              <Text style={{ color: "white", fontSize: 16, fontWeight: "700", textAlign: "center" }}>
-                Open Analytics
-              </Text>
-              <Text style={{ color: "#94a3b8", fontSize: 12, textAlign: "center", marginTop: 4 }}>
-                Orders & Conversations
-              </Text>
-            </Pressable>
-          </Link>
+          <Pressable
+            onPress={() => router.push("/analytics")}
+            style={{
+              backgroundColor: "#1f2937",
+              paddingVertical: 14,
+              paddingHorizontal: 16,
+              borderRadius: 12,
+              borderWidth: 1,
+              borderColor: "#334155",
+            }}
+          >
+            <Text style={{ color: "white", fontSize: 16, fontWeight: "700", textAlign: "center" }}>
+              Open Analytics
+            </Text>
+            <Text style={{ color: "#94a3b8", fontSize: 12, textAlign: "center", marginTop: 4 }}>
+              Orders & Conversations
+            </Text>
+          </Pressable>
         </View>
 
         <Button title="Sign out" onPress={auth?.signOut} />

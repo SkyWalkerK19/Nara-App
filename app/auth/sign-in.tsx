@@ -1,13 +1,21 @@
 // app/auth/sign-in.tsx
-import { router } from "expo-router";
+import { useNavigation } from "@react-navigation/native";
+import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import React from "react";
 import { Alert, View } from "react-native";
 
 import { AuthButton } from "@/components/AuthButton";
 import { AuthTextField } from "@/components/AuthTextField";
 import { useAuth } from "@/context/AuthContext";
+type AuthStackParamList = {
+  SignIn: undefined;
+  SignUp: undefined;
+  // Add other routes here if needed
+};
 
 export default function SignInScreen() {
+  const navigation = useNavigation<NativeStackNavigationProp<AuthStackParamList>>();
+  
   const { signIn } = useAuth();
 
   const [email, setEmail] = React.useState("");
@@ -28,7 +36,7 @@ export default function SignInScreen() {
     try {
       setBusy(true);
       await signIn(email.trim(), password);
-      // router.replace("/home"); // uncomment if you don't auto-redirect in provider
+      // navigation.replace("Home"); // uncomment if you don't auto-redirect in provider
     } catch (e: any) {
       Alert.alert("Sign in failed", e?.message ?? "Login failed");
     } finally {
@@ -58,7 +66,7 @@ export default function SignInScreen() {
       <AuthButton
         title="Create Account"
         variant="ghost"
-        onPress={() => router.push("/auth/sign-up")}
+        onPress={() => navigation.navigate("SignUp")}
         disabled={busy}
       />
     </View>
