@@ -12,7 +12,7 @@ export default function Home() {
         <Text style={{ fontSize: 24, fontWeight: 'bold' }}>Home</Text>
         
         <View style={{ marginTop: 12 }}>
-          <Link href="/analytics" asChild>
+          <Link href="/analytics/index" asChild>
             <Pressable
               style={{
                 backgroundColor: "#1f2937",
