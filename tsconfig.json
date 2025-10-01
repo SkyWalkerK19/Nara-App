@@ -25,17 +25,19 @@
       ]
     },
     "types": [
+      "expo-router",
       "jest",
       "@testing-library/jest-dom"
     ]
   },
   "include": [
+    "app",
     "src",
     "**/*.ts",
     "**/*.tsx",
     "tests/**/*",
-    ".expo/types/**/*.ts",
-    "expo-env.d.ts"
+    "expo-env.d.ts",
+    ".expo/types/**/*.ts"
   ],
   "exclude": [
     "node_modules"

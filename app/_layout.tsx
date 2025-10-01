@@ -1,12 +1,13 @@
-// app/_layout.tsx
-import { Slot } from 'expo-router';
-import React from 'react';
-import { AuthProvider } from '../context/AuthContext';
+import { AuthProvider } from "@/context/AuthContext";
+import { Stack } from "expo-router";
 
-export default function Layout() {
+export default function RootLayout() {
   return (
     <AuthProvider>
-      <Slot />
+      <Stack
+        screenOptions={{ headerShown: false }}
+        initialRouteName="index" // Explicitly set initial route
+      />
     </AuthProvider>
   );
 }
