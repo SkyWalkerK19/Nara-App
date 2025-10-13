@@ -1,6 +1,6 @@
 import RequireAuth from "@/components/RequireAuth";
 import { useAuth } from "@/context/AuthContext";
-import router from 'expo-router'; // Import router as default
+import { router } from 'expo-router'; // Change to named import
 import { Button, Pressable, Text, View } from 'react-native';
 
 export default function Home() {

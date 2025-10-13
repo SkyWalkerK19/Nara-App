@@ -26,18 +26,42 @@ export default function ConversationsAnalytics() {
   const [error, setError] = useState<string | null>(null);
 
   const screenWidth = Dimensions.get("window").width - 24;
+// Coerce to finite numbers and pad empty datasets to prevent RNSVG crashes
+const num = (v: any) => {
+  const n = Number(v);
+  return Number.isFinite(n) ? n : 0;
+};
+
+const padChart = (labels: string[], data: number[]) => {
+  const clean = data.map(num);
+  if (labels.length === 0 || clean.length === 0) {
+    return { labels: ["—"], datasets: [{ data: [0] }] };
+  }
+  // if everything is 0, still safe to render
+  return { labels, datasets: [{ data: clean }] };
+};
 
   async function fetchAll() {
     setError(null);
-    const [kpiRes, sessRes, userRes, latRes, kwRes] = await Promise.all([
-      supabase.from("analytics_conv_kpis").select("sessions_today,users_today,avg_latency_today").single(),
+    
+    // Updated KPI fetch with maybeSingle()
+    const { data: kpi, error: kpiErr } = await supabase
+      .from("analytics_conv_kpis")
+      .select("sessions_today,users_today,avg_latency_today")
+      .eq("id", true)
+      .maybeSingle();
+
+    if (kpiErr) setError(kpiErr.message);
+    else setKpis(kpi ?? { sessions_today: 0, users_today: 0, avg_latency_today: null });
+
+    // Fetch other data
+    const [sessRes, userRes, latRes, kwRes] = await Promise.all([
       supabase.from("analytics_conv_sessions_daily").select("ddate,sessions").order("ddate", { ascending: true }),
       supabase.from("analytics_conv_users_daily").select("ddate,users").order("ddate", { ascending: true }),
       supabase.from("analytics_conv_latency_daily").select("ddate,avg_latency_ms").order("ddate", { ascending: true }),
       supabase.from("analytics_conv_keywords").select("token,cnt").order("cnt", { ascending: false }).limit(15),
     ]);
 
-    if (kpiRes.error) setError(kpiRes.error.message); else setKpis(kpiRes.data);
     if (sessRes.error) setError(prev => prev ?? sessRes.error!.message); else setSessionsDaily(sessRes.data || []);
     if (userRes.error) setError(prev => prev ?? userRes.error!.message); else setUsersDaily(userRes.data || []);
     if (latRes.error) setError(prev => prev ?? latRes.error!.message); else setLatencyDaily(latRes.data || []);
@@ -48,25 +72,46 @@ export default function ConversationsAnalytics() {
 
   const onRefresh = async () => { setRefreshing(true); await fetchAll(); setRefreshing(false); };
 
-  const sessionsChart = useMemo(() => ({
-    labels: sessionsDaily.map(r => new Date(r.ddate).toLocaleDateString()),
-    datasets: [{ data: sessionsDaily.map(r => r.sessions || 0) }],
-  }), [sessionsDaily]);
+  const sessionsChart = useMemo(() => {
+  const labels = sessionsDaily
+    .filter(r => r?.ddate)
+    .map(r => new Date(r.ddate).toLocaleDateString());
+  const data = sessionsDaily
+    .filter(r => r?.ddate)
+    .map(r => num(r.sessions));
+  return padChart(labels, data);
+}, [sessionsDaily]);
 
-  const usersChart = useMemo(() => ({
-    labels: usersDaily.map(r => new Date(r.ddate).toLocaleDateString()),
-    datasets: [{ data: usersDaily.map(r => r.users || 0) }],
-  }), [usersDaily]);
+const usersChart = useMemo(() => {
+  const labels = usersDaily
+    .filter(r => r?.ddate)
+    .map(r => new Date(r.ddate).toLocaleDateString());
+  const data = usersDaily
+    .filter(r => r?.ddate)
+    .map(r => num(r.users));
+  return padChart(labels, data);
+}, [usersDaily]);
 
-  const latencyChart = useMemo(() => ({
-    labels: latencyDaily.map(r => new Date(r.ddate).toLocaleDateString()),
-    datasets: [{ data: latencyDaily.map(r => r.avg_latency_ms || 0) }],
-  }), [latencyDaily]);
+const latencyChart = useMemo(() => {
+  const labels = latencyDaily
+    .filter(r => r?.ddate)
+    .map(r => new Date(r.ddate).toLocaleDateString());
+  const data = latencyDaily
+    .filter(r => r?.ddate)
+    .map(r => num(r.avg_latency_ms));
+  return padChart(labels, data);
+}, [latencyDaily]);
 
-  const kwChart = useMemo(() => ({
-    labels: keywords.map(k => k.token.length > 10 ? k.token.slice(0,10)+"…" : k.token),
-    datasets: [{ data: keywords.map(k => k.cnt) }],
-  }), [keywords]);
+const kwChart = useMemo(() => {
+  const labels = keywords
+    .filter(k => k?.token)
+    .map(k => (k.token.length > 10 ? k.token.slice(0, 10) + "…" : k.token));
+  const data = keywords
+    .filter(k => k?.token)
+    .map(k => num(k.cnt));
+  return padChart(labels, data);
+}, [keywords]);
+
 
   const chartCfg = {
     backgroundGradientFrom: "#0b1220",

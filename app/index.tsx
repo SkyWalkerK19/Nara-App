@@ -1,19 +1,24 @@
 import RequireAuth from "@/components/RequireAuth";
 import { useAuth } from "@/context/AuthContext";
-import { router } from 'expo-router'; // Try this first
-import { Button, Pressable, Text, View } from 'react-native';
+import { Button, Pressable, Text, View } from "react-native";
 
 export default function Home() {
   const auth = useAuth();
 
+  // Lazy-load router to avoid TS type issues
+  const goAnalytics = () => {
+    const Router = require("expo-router");        // ← type: any
+    Router.router?.push?.("/analytics");          // safe-optional chain
+  };
+
   return (
     <RequireAuth>
       <View style={{ flex: 1, justifyContent: "center", alignItems: "center", gap: 12, padding: 20 }}>
-        <Text style={{ fontSize: 24, fontWeight: 'bold' }}>Home</Text>
-        
-        <View style={{ marginTop: 12 }}>
+        <Text style={{ fontSize: 24, fontWeight: "bold", color: "white" }}>Home</Text>
+
+        <View style={{ marginTop: 12, width: "100%" }}>
           <Pressable
-            onPress={() => router.push("/analytics")}
+            onPress={goAnalytics}
             style={{
               backgroundColor: "#1f2937",
               paddingVertical: 14,
